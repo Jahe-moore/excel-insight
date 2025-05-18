@@ -1,2 +1,13 @@
-# created by virtualenv automatically
+# Ignore all files by default
 *
+
+# But NOT these files
+!app.py
+!requirements.txt
+!.streamlit/
+!.streamlit/secrets_template.toml
+!.gitignore
+!README.md
+
+# Still ignore secrets file
+.streamlit/secrets.toml
