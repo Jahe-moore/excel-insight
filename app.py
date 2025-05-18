@@ -94,75 +94,80 @@ if uploaded_file:
             mixed_types.append(col)
     st.write(f"**Mixed-Type Columns:** {', '.join(mixed_types) if mixed_types else 'None'}")
 
-    # AI SUMMARY
-    st.write("### 🧠 AI Summary")
+# AI SUMMARY
+st.write("### 🧠 AI Summary")
 
-    if st.button("Generate Summary with AI"):
-        prompt = f"""You are a senior data analyst. Given the information below, write a comprehensive report analyzing this dataset. Your analysis should include patterns, outliers, correlations, and data quality observations. Present it as if you're writing for a technical audience (e.g., a data science team or business analyst group). Be thorough, insightful, and structured.
-    Include:
-        - An overview of the dataset structure (rows, columns, types)
-        - Key statistics and what they reveal
-        - Observations about missing data and potential implications
-        - Outliers in the selected column, if numeric
-        - Meaningful categorical distributions (top value counts)
-        - Interpretation of the correlation matrix (not just values — describe relationships)
-        - Commentary on duplicate rows, constant columns, and mixed-type columns
-        - Any limitations or data quality concerns
-        - Provide an executive summary for the management team, giving both your personal suggestions and insights (Around 10 sentences)
+if st.button("Generate Summary with AI"):
+    prompt = f"""You are a senior data analyst. Given the information below, write a comprehensive report analyzing this dataset. Your analysis should include patterns, outliers, correlations, and data quality observations. Present it as if you're writing for a technical audience (e.g., a data science team or business analyst group). Be thorough, insightful, and structured.
+Include:
+    - An overview of the dataset structure (rows, columns, types)
+    - Key statistics and what they reveal
+    - Observations about missing data and potential implications
+    - Outliers in the selected column, if numeric
+    - Meaningful categorical distributions (top value counts)
+    - Interpretation of the correlation matrix (not just values — describe relationships)
+    - Commentary on duplicate rows, constant columns, and mixed-type columns
+    - Any limitations or data quality concerns
+    - Provide an executive summary for the management team, giving both your personal suggestions and insights (Around 10 sentences)
+
 Use this raw data to generate the report:
 --------------------
-    📊 Shape: {df.shape[0]} rows × {df.shape[1]} columns
-    📁 Data Types:
-        {df.dtypes.to_string()}
-    ❗ Missing Values:
-        {df.isnull().sum().to_string()}
-    📈 Descriptive Stats:
-        {df.describe().to_string()}
-    🔗 Correlation Matrix:
-        {corr.to_string()}
+📊 Shape: {df.shape[0]} rows × {df.shape[1]} columns
+📁 Data Types:
+{df.dtypes.to_string()}
+❗ Missing Values:
+{df.isnull().sum().to_string()}
+📈 Descriptive Stats:
+{df.describe().to_string()}
+🔗 Correlation Matrix:
+{corr.to_string()}
 🔍 Selected Column: {selected_col}
-    Type: {df[selected_col].dtype}
-    Missing: {100 * df[selected_col].isnull().mean():.2f}%
-    Unique Values: {df[selected_col].nunique()}
+Type: {df[selected_col].dtype}
+Missing: {100 * df[selected_col].isnull().mean():.2f}%
+Unique Values: {df[selected_col].nunique()}
 {f"Top Value Counts:\n" + df[selected_col].value_counts().head(10).to_string() if selected_col in cat_cols else ""}
 {f"Outliers (Z-score > 3):\n{outliers.to_string(index=False)}" if selected_col in num_cols and not outliers.empty else ""}
-    🧼 Data Quality Checks:
-        - Total Missing: {missing_total}
-        - Duplicate Rows: {duplicate_rows}
-        - Constant Columns: {', '.join(constant_cols) if constant_cols else 'None'}
-        - Mixed-Type Columns: {', '.join(mixed_types) if mixed_types else 'None'}
+🧼 Data Quality Checks:
+- Total Missing: {missing_total}
+- Duplicate Rows: {duplicate_rows}
+- Constant Columns: {', '.join(constant_cols) if constant_cols else 'None'}
+- Mixed-Type Columns: {', '.join(mixed_types) if mixed_types else 'None'}
 """
-        with st.spinner("Generating summary..."):
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a senior data analyst tasked with writing comprehensive exploratory data summaries for technical teams."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=1000,
-                    temperature=0.7
-                )
 
-                summary = response.choices[0].message.content
-                st.success("Summary generated!")
-                st.write(summary)
+    with st.spinner("Generating summary..."):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a senior data analyst tasked with writing comprehensive exploratory data summaries for technical teams."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1000,
+                temperature=0.7
+            )
+            summary = response.choices[0].message.content
+            st.success("Summary generated!")
+            st.write(summary)
 
-            except Exception as e:
-                if "RateLimitError" in str(e) or "quota" in str(e).lower():
-                    st.error(
-                        "❌ You've hit your OpenAI quota. Visit https://platform.openai.com/account/usage to check your limits.")
-                else:
-                    st.error(f"❌ Something went wrong: {e}")
+        except Exception as e:
+            if "RateLimitError" in str(e) or "quota" in str(e).lower():
+                st.error("❌ You've hit your OpenAI quota. Visit https://platform.openai.com/account/usage to check your limits.")
+            else:
+                st.error(f"❌ Something went wrong: {e}")
+
 # Follow-up: What would you explore next?
-            if st.button("What should I explore next?"):
-                follow_up_prompt = f"""You're a senior data analyst reviewing this dataset:
+if st.button("What should I explore next?"):
+    follow_up_prompt = f"""You're a senior data analyst reviewing this dataset:
+
 - Columns: {', '.join(df.columns)}
 - Data types:\n{df.dtypes.to_string()}
 - Descriptive stats:\n{df.describe().to_string()}
 - Correlation matrix:\n{corr.to_string() if not corr.empty else 'No numeric data available'}
-Based on the structure and patterns in this dataset, what would you explore next? Suggest 2–4 analytical directions, including possible visualizations, feature engineering ideas, or statistical tests.
+
+Based on the structure and patterns in this dataset, what would you explore next? 
+Suggest 2–4 analytical directions, including possible visualizations, feature engineering ideas, or statistical tests.
 """
+
     with st.spinner("Thinking..."):
         try:
             follow_up = client.chat.completions.create(
@@ -171,7 +176,7 @@ Based on the structure and patterns in this dataset, what would you explore next
                     {"role": "system", "content": "You are a senior data analyst helping a junior analyst plan next steps in a data exploration project."},
                     {"role": "user", "content": follow_up_prompt}
                 ],
-                max_tokens=500,
+                max_tokens=700,
                 temperature=0.6
             )
             st.success("Follow-up generated:")
