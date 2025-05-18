@@ -98,14 +98,39 @@ if uploaded_file:
     st.write("### 🧠 AI Summary")
 
     if st.button("Generate Summary with AI"):
-        prompt = f"""You are a data analyst. Provide a clear, concise summary of the dataset.
-
-           - Data shape: {df.shape[0]} rows × {df.shape[1]} columns
-           - Missing values:\n{df.isnull().sum().to_string()}
-           - Descriptive stats:\n{df.describe().to_string()}
-           - Correlation matrix:\n{df.corr(numeric_only=True).to_string()}
-           """
-
+        prompt = f"""You are a senior data analyst. Given the information below, write a comprehensive report analyzing this dataset. Your analysis should include patterns, outliers, correlations, and data quality observations. Present it as if you're writing for a technical audience (e.g., a data science team or business analyst group). Be thorough, insightful, and structured.
+    Include:
+        - An overview of the dataset structure (rows, columns, types)
+        - Key statistics and what they reveal
+        - Observations about missing data and potential implications
+        - Outliers in the selected column, if numeric
+        - Meaningful categorical distributions (top value counts)
+        - Interpretation of the correlation matrix (not just values — describe relationships)
+        - Commentary on duplicate rows, constant columns, and mixed-type columns
+        - Any limitations or data quality concerns
+Use this raw data to generate the report:
+--------------------
+    📊 Shape: {df.shape[0]} rows × {df.shape[1]} columns
+    📁 Data Types:
+        {df.dtypes.to_string()}
+    ❗ Missing Values:
+        {df.isnull().sum().to_string()}
+    📈 Descriptive Stats:
+        {df.describe().to_string()}
+    🔗 Correlation Matrix:
+        {corr.to_string()}
+🔍 Selected Column: {selected_col}
+    Type: {df[selected_col].dtype}
+    Missing: {100 * df[selected_col].isnull().mean():.2f}%
+    Unique Values: {df[selected_col].nunique()}
+{f"Top Value Counts:\n" + df[selected_col].value_counts().head(10).to_string() if selected_col in cat_cols else ""}
+{f"Outliers (Z-score > 3):\n{outliers.to_string(index=False)}" if selected_col in num_cols and not outliers.empty else ""}
+    🧼 Data Quality Checks:
+        - Total Missing: {missing_total}
+        - Duplicate Rows: {duplicate_rows}
+        - Constant Columns: {', '.join(constant_cols) if constant_cols else 'None'}
+        - Mixed-Type Columns: {', '.join(mixed_types) if mixed_types else 'None'}
+"""
         with st.spinner("Generating summary..."):
             try:
                 response = client.chat.completions.create(
