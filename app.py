@@ -108,6 +108,7 @@ if uploaded_file:
         - Interpretation of the correlation matrix (not just values — describe relationships)
         - Commentary on duplicate rows, constant columns, and mixed-type columns
         - Any limitations or data quality concerns
+        - Provide an executive summary for the management team, giving both your personal suggestions and insights (Around 10 sentences)
 Use this raw data to generate the report:
 --------------------
     📊 Shape: {df.shape[0]} rows × {df.shape[1]} columns
@@ -136,10 +137,10 @@ Use this raw data to generate the report:
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a helpful data analyst."},
+                        {"role": "system", "content": "You are a senior data analyst tasked with writing comprehensive exploratory data summaries for technical teams."},
                         {"role": "user", "content": prompt}
                     ],
-                    max_tokens=400,
+                    max_tokens=1000,
                     temperature=0.7
                 )
 
@@ -153,3 +154,28 @@ Use this raw data to generate the report:
                         "❌ You've hit your OpenAI quota. Visit https://platform.openai.com/account/usage to check your limits.")
                 else:
                     st.error(f"❌ Something went wrong: {e}")
+        # Follow-up: What would you explore next?
+        if st.button("What should I explore next?"):
+            follow_up_prompt = f"""You're a senior data analyst reviewing this dataset:
+- Columns: {', '.join(df.columns)}
+- Data types:\n{df.dtypes.to_string()}
+- Descriptive stats:\n{df.describe().to_string()}
+- Correlation matrix:\n{corr.to_string() if not corr.empty else 'No numeric data available'}
+Based on the structure and patterns in this dataset, what would you explore next? Suggest 2–4 analytical directions, including possible visualizations, feature engineering ideas, or statistical tests.
+"""
+    with st.spinner("Thinking..."):
+        try:
+            follow_up = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a senior data analyst helping a junior analyst plan next steps in a data exploration project."},
+                    {"role": "user", "content": follow_up_prompt}
+                ],
+                max_tokens=500,
+                temperature=0.6
+            )
+            st.success("Follow-up generated:")
+            st.write(follow_up.choices[0].message.content)
+
+        except Exception as e:
+            st.error(f"❌ Unable to generate follow-up: {e}")
