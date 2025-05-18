@@ -154,9 +154,9 @@ Use this raw data to generate the report:
                         "❌ You've hit your OpenAI quota. Visit https://platform.openai.com/account/usage to check your limits.")
                 else:
                     st.error(f"❌ Something went wrong: {e}")
-        # Follow-up: What would you explore next?
-        if st.button("What should I explore next?"):
-            follow_up_prompt = f"""You're a senior data analyst reviewing this dataset:
+# Follow-up: What would you explore next?
+            if st.button("What should I explore next?"):
+                follow_up_prompt = f"""You're a senior data analyst reviewing this dataset:
 - Columns: {', '.join(df.columns)}
 - Data types:\n{df.dtypes.to_string()}
 - Descriptive stats:\n{df.describe().to_string()}
