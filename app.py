@@ -7,9 +7,9 @@ import os
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])  # Personal Key OpenAI
 
-st.set_page_config(page_title="Excel Insight Engine", layout="wide")
+st.set_page_config(page_title="DataScope", layout="wide")
 
-st.title("📊 Excel Insight Engine")
+st.title("DataScope")
 st.subheader("Upload any CSV or Excel file and get automatic insights")
 
 uploaded_file = st.file_uploader("Upload your CSV or Excel file", type=["csv", "xlsx"])
